@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rake/gempackagetask'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
+require 'lib/quickspec'
 
 spec = Gem::Specification.new do |s|
   s.author = 'Andrew Kiellor'
@@ -17,6 +18,4 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_tar = true
 end
 
-Spec::Rake::SpecTask.new do |t|
-  t.warning = true
-end
+RSpec::Core::RakeTask.new
