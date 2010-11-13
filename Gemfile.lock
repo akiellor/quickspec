@@ -1,3 +1,9 @@
+GIT
+  remote: git://github.com/akiellor/quickspec.git
+  revision: f9f38f0f75ad9b289941cbc6673fabea4084245d
+  specs:
+    quickspec (0.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -21,5 +27,6 @@ PLATFORMS
 
 DEPENDENCIES
   grit (= 2.3.0)
+  quickspec (= 0.1)!
   rake (= 0.8.7)
   rspec

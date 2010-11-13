@@ -5,5 +5,5 @@ gem 'grit', '2.3.0'
 
 group :test do
   gem 'rspec'
-  gem 'quickspec', :git => "git://github.com/akiellor/quickspec.git"
+  gem 'quickspec', "0.1", :git => "git://github.com/akiellor/quickspec.git"
 end

@@ -8,7 +8,7 @@ class GitChangeSet
   end
 
   def high_risk_specs
-    untracked_specs + changed_specs + specs_with_changed_implementation
+    (untracked_specs + changed_specs + specs_with_changed_implementation).uniq
   end
 
   private

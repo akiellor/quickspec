@@ -118,6 +118,27 @@ describe GitChangeSet do
 
       it { should have(0).high_risk_specs }
     end
+
+    context "repository with changed implementation file and changed test for implementation" do
+      before :each do
+        %x[mkdir #{@test_repo_dir}/lib]
+        %x[touch #{@test_repo_dir}/lib/a.rb]
+        %x[touch #{@test_repo_dir}/lib/b.rb]
+        %x[mkdir #{@test_repo_dir}/spec]
+        %x[touch #{@test_repo_dir}/spec/a_spec.rb]
+        %x[touch #{@test_repo_dir}/spec/b_spec.rb]
+
+        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
+        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m "Nothin'"]
+
+        %x[echo "changed" >> #{@test_repo_dir}/lib/a.rb]
+        %x[echo "changed" >> #{@test_repo_dir}/spec/a_spec.rb]
+      end
+
+      it { should have(1).high_risk_specs }
+
+      it { should have_high_risk_spec(@test_repo_dir + "/spec/a_spec.rb") }
+    end
   end
 end
 
