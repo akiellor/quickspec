@@ -16,8 +16,3 @@ end
 require 'pp'
 
 Dir["#{File.dirname(__FILE__)}/../lib/**/*.rb"].each { |file| require file }
-
-RSpec.configure do |config|
-  config.add_setting :work_dir, :default => "/tmp/work"
-  config.color_enabled = true
-end

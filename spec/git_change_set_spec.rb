@@ -4,7 +4,7 @@ require 'support/project'
 describe GitChangeSet do
   context "an existing repository" do
     before :each do
-      @test_repo_dir = RSpec.configuration.work_dir
+      @test_repo_dir = '/tmp/work'
       @project = Project.new @test_repo_dir
 
       @project.clean
@@ -104,6 +104,6 @@ describe GitChangeSet do
   end
 end
 
-RSpec::Matchers.define :have_high_risk_spec do |expected_path|
+Spec::Matchers.define :have_high_risk_spec do |expected_path|
   match { |change_set| change_set.high_risk_specs.include?(expected_path) }
 end

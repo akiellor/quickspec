@@ -1,9 +1,3 @@
-GIT
-  remote: git://github.com/akiellor/quickspec.git
-  revision: f9f38f0f75ad9b289941cbc6673fabea4084245d
-  specs:
-    quickspec (0.1)
-
 GEM
   remote: http://rubygems.org/
   specs:
@@ -13,20 +7,12 @@ GEM
       mime-types (~> 1.15)
     mime-types (1.16)
     rake (0.8.7)
-    rspec (2.1.0)
-      rspec-core (~> 2.1.0)
-      rspec-expectations (~> 2.1.0)
-      rspec-mocks (~> 2.1.0)
-    rspec-core (2.1.0)
-    rspec-expectations (2.1.0)
-      diff-lcs (~> 1.1.2)
-    rspec-mocks (2.1.0)
+    rspec (1.3.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   grit (= 2.3.0)
-  quickspec (= 0.1)!
   rake (= 0.8.7)
-  rspec
+  rspec (= 1.3.0)
