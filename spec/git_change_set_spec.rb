@@ -1,21 +1,14 @@
 require "spec_helper"
-require 'grit'
+require 'support/project'
 
 describe GitChangeSet do
-
   context "an existing repository" do
     before :each do
-      @work_dir = Rspec.configuration.work_dir
-      %x[rm -Rf #{@work_dir}]
-      @test_repo_dir = "#{@work_dir}/test-repo"
-      %x[mkdir #{@work_dir}]
-      %x[mkdir #{@test_repo_dir}]
-      %x[touch #{@test_repo_dir}/README]
-      %x[cd #{@test_repo_dir}]
+      @test_repo_dir = RSpec.configuration.work_dir
+      @project = Project.new @test_repo_dir
 
-      %x[git init #{@test_repo_dir}]
-      %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
-      %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m 'Initial commit.']
+      @project.clean
+      @project.init
     end
 
     subject { GitChangeSet.new @test_repo_dir }
@@ -26,94 +19,69 @@ describe GitChangeSet do
 
     context "repository with 5 untracked specs" do
       before :each do
-        %x[mkdir #{@test_repo_dir}/spec]
-        %w{  a b c d e  }.each do |letter|
-          %x[touch #{@test_repo_dir}/spec/#{letter}_spec.rb]
-        end
+        @project.make_specs "a", "b", "c", "d", "e"
       end
-      
+
       it { should have(5).high_risk_specs }
 
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/a_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/b_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/c_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/d_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/e_spec.rb") }
+      it { should have_high_risk_spec @project.spec "a" }
+      it { should have_high_risk_spec @project.spec "b" }
+      it { should have_high_risk_spec @project.spec "c" }
+      it { should have_high_risk_spec @project.spec "d" }
+      it { should have_high_risk_spec @project.spec "e" }
     end
 
     context "repository with 3 untracked specs and 2 untracked files" do
       before :each do
-        %x[touch #{@test_repo_dir}/file_one.rb]
-        %x[touch #{@test_repo_dir}/file_two.rb]
-        %x[mkdir #{@test_repo_dir}/spec]
-        %w{ a b c }.each do |letter|
-          %x[touch #{@test_repo_dir}/spec/#{letter}_spec.rb]
-        end
+        @project.make_root "file_one.rb"
+        @project.make_root "file_two.rb"
+        @project.make_specs "a", "b", "c"
       end
 
       it { should have(3).high_risk_specs }
 
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/a_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/b_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/c_spec.rb") }
+      it { should have_high_risk_spec @project.spec "a" }
+      it { should have_high_risk_spec @project.spec "b" }
+      it { should have_high_risk_spec @project.spec "c" }
       it { should_not have_high_risk_spec(@test_repo_dir + "/file_one.rb") }
       it { should_not have_high_risk_spec(@test_repo_dir + "/file_two.rb") }
     end
 
     context "repository with 2 changed specs" do
       before :each do
-        %x[mkdir #{@test_repo_dir}/spec]
-        %w{ a b c }.each do |letter|
-          %x[touch #{@test_repo_dir}/spec/#{letter}_spec.rb]
-        end
+        @project.make_specs "a", "b", "c"
+        @project.commit_all
 
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m "Nothin'"]
-
-        %x[echo "changed" >> #{@test_repo_dir}/spec/a_spec.rb]
-        %x[echo "changed" >> #{@test_repo_dir}/spec/b_spec.rb]
+        @project.change_spec "a"
+        @project.change_spec "b"
       end
 
       it { should have(2).high_risk_specs }
 
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/a_spec.rb") }
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/b_spec.rb") }
+      it { should have_high_risk_spec(@project.spec "a") }
+      it { should have_high_risk_spec(@project.spec "b") }
     end
 
     context "repository with changed implementation file that has a spec" do
       before :each do
-        %x[mkdir #{@test_repo_dir}/lib]
-        %x[touch #{@test_repo_dir}/lib/a.rb]
-        %x[touch #{@test_repo_dir}/lib/b.rb]
-        %x[mkdir #{@test_repo_dir}/spec]
-        %x[touch #{@test_repo_dir}/spec/a_spec.rb]
-        %x[touch #{@test_repo_dir}/spec/b_spec.rb]
+        @project.make_libs "a", "b"
+        @project.make_specs "a", "b"
+        @project.commit_all
 
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m "Nothin'"]
-
-        %x[echo "changed" >> #{@test_repo_dir}/lib/b.rb]
+        @project.change_lib 'b'
       end
 
       it { should have(1).high_risk_specs }
 
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/b_spec.rb") }
+      it { should have_high_risk_spec(@project.spec "b") }
     end
 
     context "repository with changed implementation file that does not have a spec" do
       before :each do
-        %x[mkdir #{@test_repo_dir}/lib]
-        %x[touch #{@test_repo_dir}/lib/a.rb]
-        %x[touch #{@test_repo_dir}/lib/b.rb]
-        %x[touch #{@test_repo_dir}/lib/c.rb]
-        %x[mkdir #{@test_repo_dir}/spec]
-        %x[touch #{@test_repo_dir}/spec/a_spec.rb]
-        %x[touch #{@test_repo_dir}/spec/b_spec.rb]
-
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m "Nothin'"]
-
-        %x[echo "changed" >> #{@test_repo_dir}/lib/c.rb]
+        @project.make_specs "a", "b"
+        @project.make @project.lib "c"
+        @project.commit_all
+        @project.change_lib 'c'
       end
 
       it { should have(0).high_risk_specs }
@@ -121,23 +89,17 @@ describe GitChangeSet do
 
     context "repository with changed implementation file and changed test for implementation" do
       before :each do
-        %x[mkdir #{@test_repo_dir}/lib]
-        %x[touch #{@test_repo_dir}/lib/a.rb]
-        %x[touch #{@test_repo_dir}/lib/b.rb]
-        %x[mkdir #{@test_repo_dir}/spec]
-        %x[touch #{@test_repo_dir}/spec/a_spec.rb]
-        %x[touch #{@test_repo_dir}/spec/b_spec.rb]
+        @project.make_libs "a", "b"
+        @project.make_specs "a", "b"
+        @project.commit_all
 
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} add .]
-        %x[git --git-dir=#{@test_repo_dir}/.git --work-tree=#{@test_repo_dir} commit -m "Nothin'"]
-
-        %x[echo "changed" >> #{@test_repo_dir}/lib/a.rb]
-        %x[echo "changed" >> #{@test_repo_dir}/spec/a_spec.rb]
+        @project.change_lib "a"
+        @project.change_spec "a"
       end
 
       it { should have(1).high_risk_specs }
 
-      it { should have_high_risk_spec(@test_repo_dir + "/spec/a_spec.rb") }
+      it { should have_high_risk_spec(@project.spec "a") }
     end
   end
 end
