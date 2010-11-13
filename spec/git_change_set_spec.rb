@@ -43,8 +43,8 @@ describe GitChangeSet do
       it { should have_high_risk_spec @project.spec "a" }
       it { should have_high_risk_spec @project.spec "b" }
       it { should have_high_risk_spec @project.spec "c" }
-      it { should_not have_high_risk_spec(@test_repo_dir + "/file_one.rb") }
-      it { should_not have_high_risk_spec(@test_repo_dir + "/file_two.rb") }
+      it { should_not have_high_risk_spec(@project.root "file_one.rb") }
+      it { should_not have_high_risk_spec(@project.root "file_two.rb") }
     end
 
     context "repository with 2 changed specs" do
